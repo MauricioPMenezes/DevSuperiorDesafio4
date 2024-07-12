@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.devsuperior.dsmeta.dto.SalesReportYearDTO;
+import com.devsuperior.dsmeta.dto.SellerNameAmountDTO;
 import com.devsuperior.dsmeta.projections.SaleForSellerMinProjection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,12 @@ public class SaleService {
 		Optional<Sale> result = repository.findById(id);
 		Sale entity = result.get();
 		return new SaleMinDTO(entity);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<SellerNameAmountDTO> buscaVendas12MesesVendedor(Pageable pageable) {
+		Page<SellerNameAmountDTO> list= repository.searchSellerNameAmount(pageable);
+		return list;
 	}
 //
 //	@Transactional(readOnly = true)
