@@ -19,6 +19,10 @@ public class SellerNameAmountDTO {
         amount = entity.getAmount();
     }
 
+    public SellerNameAmountDTO(SellerNameAmountDTO entity) {
+        name =entity.getName();
+        amount = entity.getTotal();
+    }
 
 
     public Double getTotal() {

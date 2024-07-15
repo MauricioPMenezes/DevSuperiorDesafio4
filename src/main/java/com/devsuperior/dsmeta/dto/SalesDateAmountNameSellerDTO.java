@@ -1,7 +1,6 @@
 package com.devsuperior.dsmeta.dto;
 
 import com.devsuperior.dsmeta.entities.Sale;
-import org.apache.juli.logging.Log;
 
 import java.time.LocalDate;
 
@@ -10,7 +9,7 @@ public class SalesDateAmountNameSellerDTO {
     private Long id;
     private LocalDate date;
     private Double amount;
-    private String sellerName;
+    private String name;
 
     public SalesDateAmountNameSellerDTO() {
     }
@@ -19,15 +18,24 @@ public class SalesDateAmountNameSellerDTO {
         this.id = id;
         this.date = date;
         this.amount = amount;
-        this.sellerName = sellerName;
+        this.name = sellerName;
     }
 
     public SalesDateAmountNameSellerDTO(Sale entity) {
         id = entity.getId();
         date = entity.getDate();
         amount = entity.getAmount();
-        sellerName = entity.getSeller().getName();
+        name = entity.getSeller().getName();
     }
+
+    public SalesDateAmountNameSellerDTO(SalesDateAmountNameSellerDTO entity) {
+        id = entity.getId();
+        date = entity.getDate();
+        amount = entity.getAmount();
+        name = entity.getName();
+
+    }
+
 
     public Long getId() {
         return id;
@@ -41,7 +49,7 @@ public class SalesDateAmountNameSellerDTO {
         return date;
     }
 
-    public String getSellerName() {
-        return sellerName;
+    public String getName() {
+        return name;
     }
 }

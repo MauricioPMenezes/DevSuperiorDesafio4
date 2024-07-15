@@ -1,9 +1,8 @@
 package com.devsuperior.dsmeta.repositories;
 
-import com.devsuperior.dsmeta.dto.SaleMinDTO;
-import com.devsuperior.dsmeta.dto.SalesReportYearDTO;
+import com.devsuperior.dsmeta.dto.SaleAmountDateDTO;
+import com.devsuperior.dsmeta.dto.SalesDateAmountNameSellerDTO;
 import com.devsuperior.dsmeta.dto.SellerNameAmountDTO;
-import com.devsuperior.dsmeta.projections.SaleForSellerMinProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,47 +10,55 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.devsuperior.dsmeta.entities.Sale;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
+import java.time.LocalDate;
 
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
+//
 
-        @Query("SELECT new com.devsuperior.dsmeta.dto.SalesReportYearDTO(SUM(obj.amount) ,CONCAT(YEAR(obj.date), '-', MONTH(obj.date)) ) " +
+        //GET  /report
+        @Query( "SELECT new com.devsuperior.dsmeta.dto.SaleAmountDateDTO(SUM(obj.amount) as amount, " +
+                "CONCAT(YEAR(obj.date),'-', MONTH(obj.date)) as date ) " +
                 "FROM Sale obj " +
+                "WHERE obj.date >= FUNCTION('DATEADD', MONTH, -11, (SELECT MAX(obj.date) FROM Sale obj)) " +
                 "GROUP BY date " +
                 "ORDER BY date DESC")
-        Page<SalesReportYearDTO> searchSaleForSaller(Pageable pageable);
+        Page<SaleAmountDateDTO> searchSaleForSeller(Pageable pageable);
 
-        @Query("SELECT new com.devsuperior.dsmeta.dto.SellerNameAmountDTO( obj.seller.name , SUM(obj.amount) ) " +
+
+
+        //GET  /sales/report?minDate=2022-05-01&maxDate=2022-05-31&name=odinson
+        @Query("SELECT new com.devsuperior.dsmeta.dto.SalesDateAmountNameSellerDTO( " +
+                "obj.id , obj.date , obj.amount , obj.seller.name ) " +
                 "FROM Sale obj " +
-                "GROUP BY obj.seller.name " )
+                "WHERE UPPER(obj.seller.name) LIKE UPPER(CONCAT('%', :name , '%')) " +
+                "AND obj.date BETWEEN :minDate AND :maxDate " )
+        Page<SalesDateAmountNameSellerDTO> searchSaleByNameAndDate(LocalDate minDate, LocalDate maxDate, String name, Pageable pageable);
+
+
+
+
+        //GET  /Summary
+        @Query("SELECT new com.devsuperior.dsmeta.dto.SellerNameAmountDTO( obj.seller.name, SUM(obj.amount)) " +
+                "FROM Sale obj " +
+                "WHERE obj.date >= FUNCTION('DATEADD', MONTH, -12, (SELECT MAX(obj.date) FROM Sale obj)) " +
+                "GROUP BY obj.seller.name " +
+                "ORDER BY SUM(obj.amount) DESC" )
         Page<SellerNameAmountDTO> searchSellerNameAmount(Pageable pageable);
 
 
 
-//
-//        SELECT TB_SELLER.NAME, SUM(TB_SALES.AMOUNT) AS `Total`
-//        FROM TB_SALES
-//        JOIN TB_SELLER ON TB_SALES.SELLER_ID = TB_SELLER.ID
-//        WHERE TB_SALES.DATE BETWEEN '2022-01-01' AND '2022-06-30'
-//        GROUP BY TB_SELLER.NAME;
+        //GET /sales/summary?minDate=2022-01-01&maxDate=2022-06-30
+        @Query("SELECT new com.devsuperior.dsmeta.dto.SellerNameAmountDTO( obj.seller.name , SUM(obj.amount)) " +
+                "FROM Sale obj " +
+                "WHERE obj.date BETWEEN :minDate AND :maxDate " +
+                "GROUP BY obj.seller.name ")
+        Page<SellerNameAmountDTO> searchSellerNameAmount(LocalDate minDate, LocalDate maxDate, Pageable pageable);
 
-//        @Query(nativeQuery = true, value =
-//                "SELECT SUM(TB_SALES.AMOUNT) AS amount, CONCAT(YEAR(date), '-', MONTH(date)) AS date " +
-//                "FROM TB_SALES " +
-//                "GROUP BY date " +
-//                "ORDER BY date DESC " +
-//                "Limit 0,12 " )
-//        List<SaleForSellerMinProjection> searchSaleForSaller();
-//
-//
-//        @Query(nativeQuery = true, value =
-//                "SELECT TB_SELLER.NAME, SUM(TB_SALES.AMOUNT) AS Total "+
-//                "FROM TB_SALES "+
-//                "JOIN TB_SELLER ON TB_SALES.SELLER_ID = TB_SELLER.ID "+
-//                "WHERE TB_SALES.DATE BETWEEN '2022-01-01' AND '2022-06-30' "+
-//                "GROUP BY TB_SELLER.NAME ")
-//        List<SaleForSellerMinProjection> searchSellerTotal();
+
 
 }
+
+
+
 
